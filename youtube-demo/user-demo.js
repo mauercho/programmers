@@ -6,7 +6,26 @@ app.use(express.json()); // http 외 모듈도 쓰겠다.
 let db = new Map();
 let id = 1;
 // 로그인
-app.post("/login", function (req, res) {});
+app.post("/login", function (req, res) {
+  // userId가 디비에 저장된 회원인지 확인
+  const { userId, password } = req.body;
+  let loginUser = {};
+  db.forEach(function (user, id) {
+    if (user.userId === userId) {
+      loginUser = user;
+    }
+  });
+  if (isExist(loginUser)) {
+    console.log("같은 거 찾았다.");
+    if (loginUser.password === password) {
+      console.log("패스워드도 같다");
+    } else {
+      console.log("패스워드는 틀렸다.");
+    }
+  } else {
+    console.log("입력하신 아이디는 없는 아이디입니다.");
+  }
+});
 
 // 회원가입
 app.post("/join", function (req, res) {
@@ -89,3 +108,12 @@ app
       });
     }
   });
+function isExist(obj) {
+  if (obj.constructor === Object) {
+    if (Object.keys(obj).length === 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+}
