@@ -1,29 +1,33 @@
 const express = require("express");
-const app = express();
-app.listen(3000);
-app.use(express.json()); // http 외 모듈도 쓰겠다.
+const router = express.Router();
+router.use(express.json()); // http 외 모듈도 쓰겠다.
 
 let db = new Map();
 let id = 1;
 
-app
-  .route("/channels")
+router
+  .route("/")
   .get((req, res) => {
-    if (db.size) {
-      let channels = [];
+    let { userId } = req.body;
+    let channels = [];
+    if (db.size && userId) {
       db.forEach(function (value, key) {
-        channels.push(value);
+        if (value.userId === userId) channels.push(value);
       });
-      res.status(200).json(channels);
+
+      if (channels.length) {
+        res.status(200).json(channels);
+      } else {
+        notFoundChannel();
+      }
     } else {
-      res.status(404).json({
-        message: "조회할 채널이 없습니다.",
-      });
+      notFoundChannel();
     }
   })
   .post((req, res) => {
     if (req.body.channelTitle) {
-      db.set(id++, req.body);
+      let channel = req.body;
+      db.set(id++, channel);
 
       res
         .status(201)
@@ -33,8 +37,8 @@ app
     }
   });
 
-app
-  .route("/channels/:id")
+router
+  .route("/:id")
   .get((req, res) => {
     let { id } = req.params;
     id = parseInt(id);
@@ -42,12 +46,10 @@ app
     if (channel) {
       res.status(200).json(db.get(id));
     } else {
-      res.status(404).json({
-        message: "채널 정보를 찾을 수 없습니다.",
-      });
+      notFoundChannel();
     }
   })
-  .put((req, res) => (req, res) => {
+  .put((req, res) => {
     let { id } = req.params;
     id = parseInt(id);
     let channel = db.get(id);
@@ -61,12 +63,10 @@ app
         message: `채널명이 정상적으로 수정되었습니다. 기존 ${oldTitle} -> 수정 ${newTitle}`,
       });
     } else {
-      res.status(404).json({
-        message: "채널 정보를 찾을 수 없습니다.",
-      });
+      notFoundChannel();
     }
   })
-  .delete((req, res) => (req, res) => {
+  .delete((req, res) => {
     let { id } = req.params;
     id = parseInt(id);
     let channel = db.get(id);
@@ -76,8 +76,14 @@ app
         message: `${channel.channelTitle}이 정상적으로 삭제되었습니다.`,
       });
     } else {
-      res.status(404).json({
-        message: "채널 정보를 찾을 수 없습니다.",
-      });
+      notFoundChannel();
     }
   });
+
+function notFoundChannel() {
+  res.status(404).json({
+    message: "채널 정보를 찾을 수 없습니다.",
+  });
+}
+
+module.exports = router;
