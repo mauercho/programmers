@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express(); //서버 담아놓았음.
+const dotenv = require("dotenv");
+dotenv.config();
 
 app.get("/", function (req, res) {
   res.send("Hello World");
@@ -16,4 +18,4 @@ app.get("/products/1", function (req, res) {
   // res.send(20000); // 안됨. 객체 써야함.
 });
 
-app.listen(3000); // 서버 셋팅 : 포트 넘버 3000으로 세팅
+app.listen(process.env.PORT); // 서버 셋팅 : 포트 넘버 3000으로 세팅
